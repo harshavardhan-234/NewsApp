@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import CheckoutButton from './CheckoutButton'; // 👈 import the button
 
 export default function HomePage() {
   const liveChannels = [
@@ -20,6 +21,8 @@ export default function HomePage() {
   return (
     <div style={{ padding: '40px' }}>
       <h1 style={{ fontSize: '2rem', marginBottom: '30px' }}>📺 Live Telugu News Channels</h1>
+
+      {/* Video grid */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
@@ -28,7 +31,7 @@ export default function HomePage() {
         {liveChannels.map((chan, idx) => (
           <div key={idx} style={{
             position: 'relative',
-            paddingTop: '56.25%', // 16:9 aspect
+            paddingTop: '56.25%',
             backgroundColor: '#fff',
             borderRadius: '12px',
             overflow: 'hidden',
@@ -59,6 +62,11 @@ export default function HomePage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Stripe Button 👇 */}
+      <div style={{ marginTop: '40px', textAlign: 'center' }}>
+        {/* </CheckoutButton > */}
       </div>
     </div>
   );

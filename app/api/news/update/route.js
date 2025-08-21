@@ -1,4 +1,4 @@
-import connectDB from '@/lib/mongodb';
+import connectDB from '@/lib/db';
 import News from '@/models/News';
 import { writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';

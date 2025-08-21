@@ -1,5 +1,5 @@
 // app/api/news/[id]/route.js
-import connectDB from '@/lib/mongodb';
+import connectDB from '@/lib/db';
 import News from '@/models/News';
 import { NextResponse } from 'next/server';
 

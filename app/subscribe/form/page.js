@@ -1,18 +1,6 @@
 'use client';
 import { useState } from 'react';
 
-const countryStateCity = {
-  India: {
-    Maharashtra: ['Mumbai', 'Pune'],
-    Telangana: ['Hyderabad', 'Warangal'],
-    Karnataka: ['Bengaluru', 'Mysuru'],
-  },
-  USA: {
-    California: ['Los Angeles', 'San Francisco'],
-    Texas: ['Houston', 'Dallas'],
-  },
-};
-
 export default function SubscribePage() {
   const [form, setForm] = useState({
     name: '',
@@ -20,28 +8,57 @@ export default function SubscribePage() {
     phone: '',
     password: '',
     plan: '1',
-    country: '',
-    state: '',
-    city: '',
   });
-
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+  
+  const handleSubmit = async () => {
+    console.log('Form data being submitted:', form);
 
-    if (name === 'country') {
-      const selectedStates = Object.keys(countryStateCity[value] || {});
-      setStates(selectedStates);
-      setCities([]);
-      setForm({ ...form, country: value, state: '', city: '' });
-    } else if (name === 'state') {
-      const selectedCities = countryStateCity[form.country]?.[value] || [];
-      setCities(selectedCities);
-      setForm({ ...form, state: value, city: '' });
-    } else {
-      setForm({ ...form, [name]: value });
+    if (!form.name || !form.email || !form.phone || !form.password) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    if (form.phone.length < 10) {
+      alert('Please enter a valid phone number');
+      return;
+    }
+
+    if (form.password.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
+    
+    try {
+      sessionStorage.setItem('subscriptionData', JSON.stringify(form));
+      
+      const res = await fetch('/api/initiate-stripe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: form.plan }), // send only plan
+      });
+
+      const data = await res.json();
+      console.log("Stripe API response:", data);
+
+      if (data.url) {
+        window.location.href = data.url; // ✅ Redirect to Stripe checkout
+      } else {
+        alert('Payment initialization failed.');
+      }
+    } catch (error) {
+      console.error('Payment initialization error:', error);
+      alert('Failed to initialize payment. Please try again later.');
     }
   };
 
@@ -49,62 +66,10 @@ export default function SubscribePage() {
     <div style={styles.container}>
       <h2 style={styles.heading}>Subscribe</h2>
 
-      <input
-        name="name"
-        placeholder="Name"
-        onChange={handleChange}
-        style={styles.input}
-      />
-      <input
-        name="email"
-        placeholder="Email"
-        onChange={handleChange}
-        style={styles.input}
-      />
-      <input
-        name="phone"
-        placeholder="Phone"
-        onChange={handleChange}
-        style={styles.input}
-      />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        onChange={handleChange}
-        style={styles.input}
-      />
-
-      <select name="country" onChange={handleChange} style={styles.select}>
-        <option value="">Select Country</option>
-        {Object.keys(countryStateCity).map((country) => (
-          <option key={country} value={country}>{country}</option>
-        ))}
-      </select>
-
-      <select
-        name="state"
-        onChange={handleChange}
-        disabled={!states.length}
-        style={styles.select}
-      >
-        <option value="">Select State</option>
-        {states.map((state) => (
-          <option key={state} value={state}>{state}</option>
-        ))}
-      </select>
-
-      <select
-        name="city"
-        onChange={handleChange}
-        disabled={!cities.length}
-        style={styles.select}
-      >
-        <option value="">Select City</option>
-        {cities.map((city) => (
-          <option key={city} value={city}>{city}</option>
-        ))}
-      </select>
+      <input name="name" placeholder="Name" onChange={handleChange} style={styles.input} />
+      <input name="email" placeholder="Email" onChange={handleChange} style={styles.input} />
+      <input name="phone" placeholder="Phone" onChange={handleChange} style={styles.input} />
+      <input name="password" type="password" placeholder="Password" onChange={handleChange} style={styles.input} />
 
       <select name="plan" onChange={handleChange} style={styles.select}>
         <option value="1">1 Month - ₹99</option>
@@ -113,14 +78,11 @@ export default function SubscribePage() {
         <option value="6">6 Months - ₹599</option>
       </select>
 
-      <button onClick={() => alert(JSON.stringify(form))} style={styles.button}>
-        Submit
-      </button>
+      <button onClick={handleSubmit} style={styles.button}>Submit</button>
     </div>
   );
 }
 
-// ✅ Inline styles object
 const styles = {
   container: {
     maxWidth: '400px',

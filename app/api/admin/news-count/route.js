@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient } from 'db';
 import { NextResponse } from 'next/server';
 
 const uri = process.env.MONGODB_URI;

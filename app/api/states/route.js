@@ -1,4 +1,4 @@
-import connectDB from '@/lib/mongodb';
+import connectDB from '@/lib/db';
 import State from '@/models/state';
 
 export async function GET(req) {

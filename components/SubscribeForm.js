@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function SubscribeForm() {
   const [form, setForm] = useState({
@@ -10,59 +10,67 @@ export default function SubscribeForm() {
     plan: 1,
   });
 
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
-  }, []);
+  // No need to load external scripts for Stripe
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handlePayment = async () => {
-    const res = await fetch('/api/initiate-payment', {
-      method: 'POST',
-      body: JSON.stringify(form),
-    });
+    // Basic validation
+    if (!form.name || !form.email || !form.phone || !form.password) {
+      alert('Please fill in all required fields');
+      return;
+    }
 
-    const data = await res.json();
-    if (!data.success) return alert('Payment failed');
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
 
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: data.amount,
-      currency: 'INR',
-      name: 'News Portal',
-      description: 'Subscription Payment',
-      order_id: data.orderId,
-      handler: async function () {
-        const r = await fetch('/api/payment-success', {
-          method: 'POST',
-          body: JSON.stringify(form),
-        });
-        const result = await r.json();
+    // Phone validation
+    if (form.phone.length < 10) {
+      alert('Please enter a valid phone number');
+      return;
+    }
 
-        if (result.success) {
-          alert('✅ Payment Successful. You are now a Premium User!');
-          window.location.href = '/';
-        } else {
-          alert('Error: ' + result.message);
-        }
-      },
-      prefill: {
-        name: form.name,
-        email: form.email,
-        contact: form.phone,
-      },
-      theme: {
-        color: '#3399cc',
-      },
-    };
+    // Password validation
+    if (form.password.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
+    
+    try {
+      // Store form data in session storage for later retrieval
+      sessionStorage.setItem('subscriptionData', JSON.stringify(form));
+      
+      // Call the API to initiate Stripe payment
+      const res = await fetch('/api/initiate-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+      const data = await res.json();
+      
+      if (!data.success) {
+        alert('Payment initialization failed: ' + (data.message || 'Unknown error'));
+        return;
+      }
+
+      // Redirect to Stripe checkout URL
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        // If no direct URL is provided, redirect to payment page with session ID
+        window.location.href = `/payment?session_id=${data.id}`;
+      }
+    } catch (error) {
+      console.error('Payment initialization error:', error);
+      alert('Failed to initialize payment. Please try again later.');
+    }
   };
 
   return (

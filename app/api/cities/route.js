@@ -1,4 +1,4 @@
-import connectDB from '@/lib/mongodb';
+import connectDB from '@/lib/db';
 import City from '@/models/city';
 
 export async function GET() {

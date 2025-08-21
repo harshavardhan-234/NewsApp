@@ -11,6 +11,10 @@ async function sendSuccessEmail({ name, phone, plan, amount, email, invoiceId })
       user: 'yourgmail@gmail.com',
       pass: 'your-app-password', // Use App Passwords, not your real Gmail password
     },
+    tls: {
+      // Do not fail on invalid certificates
+      rejectUnauthorized: false
+    },
   });
 
   const mailOptions = {

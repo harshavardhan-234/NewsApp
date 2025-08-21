@@ -1,5 +1,5 @@
 // /app/api/locations/add-city/route.js
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import Location from '@/models/Country';
 

@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import connectDB from '@/lib/mongodb';
+import connectDB from '@/lib/db';
 import { sendEmail } from '@/lib/mailer';
 import PremiumUser from '@/models/PremiumUser';
 import bcrypt from 'bcryptjs';
@@ -56,7 +56,11 @@ export async function POST(req) {
       maxAge: 60 * 60 * 24 * 30,
     });
 
-    return NextResponse.json({ success: true, token: newUser._id }, { status: 200 });
+    return NextResponse.json({ 
+      success: true, 
+      token: newUser._id,
+      redirectUrl: '/payment-success'
+    }, { status: 200 });
   } catch (err) {
     console.error('❌ Error saving user or sending mail:', err);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });

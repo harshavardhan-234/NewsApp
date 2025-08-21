@@ -6,7 +6,14 @@ import { generateInvoice } from '@/lib/generateInvoice';
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { name, email, phone, plan, paymentId } = body;
+    const { 
+      name, 
+      email, 
+      phone, 
+      plan, 
+      paymentId, 
+      session_id 
+    } = body;
 
     // 💾 Save to MongoDB
     const client = await MongoClient.connect(process.env.MONGODB_URI);
@@ -17,6 +24,8 @@ export async function POST(req) {
       phone,
       plan,
       paymentId,
+      session_id,
+      paymentStatus: 'success',
       createdAt: new Date(),
     });
     await client.close();
@@ -43,7 +52,10 @@ export async function POST(req) {
       ],
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      redirectUrl: '/payment-success'
+    });
   } catch (err) {
     console.error('❌ Error in /api/payment-success:', err);
     return NextResponse.json({ success: false }, { status: 500 });

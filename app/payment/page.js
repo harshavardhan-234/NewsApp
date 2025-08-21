@@ -1,90 +1,122 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { loadStripe } from '@stripe/stripe-js';
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [formData, setFormData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Get data from URL params or session storage
   const orderId = searchParams.get('orderId');
-  const name = searchParams.get('name');
-  const email = searchParams.get('email');
-  const phone = searchParams.get('phone');
-  const password = searchParams.get('password');
-  const plan = searchParams.get('plan');
-  const amount = parseInt(plan) * 100; // Razorpay needs amount in paisa
+  let name = searchParams.get('name');
+  let email = searchParams.get('email');
+  let phone = searchParams.get('phone');
+  let password = searchParams.get('password');
+  let plan = searchParams.get('plan');
+  
+  useEffect(() => {
+    // Try to get data from session storage if not in URL
+    if (!name || !email || !phone || !password || !plan) {
+      const storedData = sessionStorage.getItem('subscriptionData');
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        name = parsedData.name;
+        email = parsedData.email;
+        phone = parsedData.phone;
+        password = parsedData.password;
+        plan = parsedData.plan;
+        setFormData(parsedData);
+      }
+    } else {
+      setFormData({ name, email, phone, password, plan });
+    }
+    setIsLoading(false);
+  }, [name, email, phone, password, plan]);
+  
+  // Get session_id from URL if available
+  const session_id = searchParams.get('session_id');
 
   useEffect(() => {
-    if (!orderId || !name || !email || !phone || !password || !plan) {
-      alert("Missing payment details.");
+    // Don't proceed if still loading or missing data
+    if (isLoading) return;
+    
+    if (!formData || !formData.name || !formData.email || !formData.phone || !formData.password || !formData.plan) {
+      alert("Missing payment details. Please return to the subscription form.");
+      router.push('/subscribe/form');
       return;
     }
 
-    const loadRazorpay = async () => {
-      const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
-      if (!res) {
-        alert('Razorpay SDK failed to load. Please try again.');
-        return;
-      }
-
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount,
-        currency: 'INR',
-        name: 'News Subscription',
-        description: `Subscription Plan: ₹${plan}`,
-        order_id: orderId,
-        handler: async function (response) {
-          const verifyRes = await fetch('/api/verify-payment', {
+    // If we have a session_id, we need to check its status
+    // If not, we need to initiate a new payment
+    const handlePayment = async () => {
+      try {
+        if (session_id) {
+          // If we have a session_id, verify the payment
+          const verifyRes = await fetch('/api/verify-stripe-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              name,
-              email,
-              phone,
-              password,
-              plan,
-              razorpay_order_id: orderId,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
+              session_id,
+              password: formData.password, // Pass password for user creation
             }),
           });
 
           const verifyData = await verifyRes.json();
 
           if (verifyData.success) {
-            router.push('/login');
+            // Clear session storage
+            sessionStorage.removeItem('subscriptionData');
+            
+            // Redirect to success page
+            if (verifyData.redirectUrl) {
+              window.location.href = verifyData.redirectUrl;
+            } else {
+              router.push('/payment-success');
+            }
           } else {
-            alert('❌ Payment verification failed. Please contact support.');
+            alert('❌ Payment verification failed: ' + (verifyData.message || 'Please contact support.'));
+            router.push('/subscribe/form');
           }
-        },
-        prefill: {
-          name,
-          email,
-          contact: phone,
-        },
-        theme: {
-          color: '#3399cc',
-        },
-      };
+        } else {
+          // If no session_id, initiate a new payment
+          const res = await fetch('/api/initiate-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+          });
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+          const data = await res.json();
+          
+          if (!data.success) {
+            alert('Payment initialization failed: ' + (data.message || 'Unknown error'));
+            router.push('/subscribe/form');
+            return;
+          }
+
+          // If we have a direct URL to Stripe checkout, use it
+          if (data.url) {
+            window.location.href = data.url;
+          } else {
+            // Otherwise, use the Stripe JS library to redirect
+            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+            await stripe.redirectToCheckout({ sessionId: data.id });
+          }
+        }
+      } catch (error) {
+        console.error('Payment processing error:', error);
+        alert('Failed to process payment. Please try again later.');
+        router.push('/subscribe/form');
+      }
     };
 
-    loadRazorpay();
-  }, [orderId, name, email, phone, password, plan, amount, router]);
+    // Process the payment
+    handlePayment();
+  }, [isLoading, formData, orderId, amount, router]);
 
-  // Helper to load Razorpay script
-  function loadScript(src) {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = src;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  }
+  // No need for script loading helper with Stripe
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>

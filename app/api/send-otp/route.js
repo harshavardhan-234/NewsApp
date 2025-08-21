@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
+import connectDB from '@/lib/db';
 import PremiumUser from '@/models/PremiumUser';
 import { otps } from '@/lib/globals';
 import nodemailer from 'nodemailer';
@@ -22,6 +22,10 @@ export async function POST(req) {
       auth: {
         user: process.env.SMTP_EMAIL,
         pass: process.env.SMTP_PASS,
+      },
+      tls: {
+        // Do not fail on invalid certificates
+        rejectUnauthorized: false
       },
     });
 
