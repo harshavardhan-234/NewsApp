@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-// import './AddNews.css';
+
 
 export default function AddNews() {
   const [form, setForm] = useState({
