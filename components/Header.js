@@ -14,6 +14,7 @@ const Header = () => {
   const [premiumUser, setPremiumUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [siteSettings, setSiteSettings] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   const today = new Date().toLocaleDateString('en-US', {
     day: 'numeric',
@@ -49,6 +50,24 @@ const Header = () => {
     };
 
     fetchSettings();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/admin/categories');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.categories) {
+            setCategories(data.categories);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   const toggleDropdown = () => setShowDropdown(!showDropdown);
@@ -143,13 +162,26 @@ const Header = () => {
       {/* Bottom Bar (Categories) */}
       <div className="bottom-bar">
         <Link href="/category/latest">Latest News</Link>
-        <Link href="/category/news">News</Link>
-        <Link href="/category/business">Business</Link>
-        <Link href="/category/science">Science</Link>
-        <Link href="/category/technology">Technology</Link>
-        <Link href="/category/sports">Sports</Link>
-        <Link href="/category/entertainment">Entertainment</Link>
-        <Link href="/category/health">Health</Link>
+        {categories.length > 0 ? (
+          categories.map((category) => (
+            <Link 
+              key={category.id} 
+              href={`/category/${category.slug}`}
+            >
+              {category.name}
+            </Link>
+          ))
+        ) : (
+          <>
+            <Link href="/category/news">News</Link>
+            <Link href="/category/business">Business</Link>
+            <Link href="/category/science">Science</Link>
+            <Link href="/category/technology">Technology</Link>
+            <Link href="/category/sports">Sports</Link>
+            <Link href="/category/entertainment">Entertainment</Link>
+            <Link href="/category/health">Health</Link>
+          </>
+        )}
       </div>
     </header>
   );

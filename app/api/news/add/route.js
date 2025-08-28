@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/mongoose";
-import News from "@/models/News";
+import connectDB from "../../../../lib/db";
+import News from "../../../../models/News.js";
 import { writeFile } from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
@@ -44,6 +44,12 @@ export async function POST(request) {
     return NextResponse.json({ success: true, message: "News added successfully" });
   } catch (error) {
     console.error("❌ Error adding news:", error);
-    return NextResponse.json({ success: false, message: "Failed to add news" }, { status: 500 });
+    console.error("Error details:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("MONGODB_URI exists:", !!process.env.MONGODB_URI);
+    return NextResponse.json({ 
+      success: false, 
+      message: `Failed to add news: ${error.message}` 
+    }, { status: 500 });
   }
 }

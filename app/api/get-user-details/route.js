@@ -1,7 +1,7 @@
 // app/api/get-user-details/route.js
 
 import { getToken } from "next-auth/jwt";
-import connectDB from '@/lib/mongoose'; // ✅ correct path
+import connectDB from '@/lib/db';
 
 import PremiumUser from "@/models/PremiumUser";
 

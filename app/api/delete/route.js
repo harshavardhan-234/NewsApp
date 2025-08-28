@@ -1,4 +1,4 @@
-import connectDB from "@/lib/db";
+import { connectDB } from "@/lib/db";
 import News from "@/models/News"; // Your Mongoose model
 
 export async function DELETE(req) {

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { FiFileText, FiClock } from 'react-icons/fi';
+import './dashboard.css';
 
 export default function DashboardPage() {
   const [totalNews, setTotalNews] = useState(0);
@@ -23,36 +25,37 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div>
-      <h1 style={{ fontSize: '2rem', marginBottom: '20px' }}>📊 Admin Dashboard</h1>
-      <div style={{
-        display: 'flex',
-        gap: '30px',
-        flexWrap: 'wrap'
-      }}>
-        <div style={{
-          flex: '1',
-          minWidth: '250px',
-          backgroundColor: '#e3f2fd',
-          padding: '20px',
-          borderRadius: '10px',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)'
-        }}>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h1>📊 Admin Dashboard</h1>
+      </div>
+      
+      <div className="stats-grid">
+        <div className="stat-card primary">
           <h3>Total News</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{totalNews}</p>
+          <p className="stat-value">{totalNews}</p>
+          <div className="stat-icon">
+            <FiFileText />
+          </div>
+          <div className="stat-period">All time</div>
         </div>
 
-        <div style={{
-          flex: '1',
-          minWidth: '250px',
-          backgroundColor: '#fff3e0',
-          padding: '20px',
-          borderRadius: '10px',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)'
-        }}>
+        <div className="stat-card warning">
           <h3>Today's News</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{todayNews}</p>
+          <p className="stat-value">{todayNews}</p>
+          <div className="stat-icon">
+            <FiClock />
+          </div>
+          <div className="stat-period">Last 24 hours</div>
         </div>
+      </div>
+      
+      <div className="activity-section">
+        <div className="section-header">
+          <h2 className="section-title">Recent Activity</h2>
+          <a href="/admin/manage-news" className="view-all">View All</a>
+        </div>
+        <p>No recent activity to display.</p>
       </div>
     </div>
   );

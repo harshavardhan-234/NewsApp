@@ -1,8 +1,8 @@
 // app/api/news/category/[slug]/route.js
-import connectDB from '@/utils/connectDB';
-import News from '@/models/News';
+import connectDB from '../../../../../lib/db';
+import News from '../../../../../models/News.js';
 import { cookies } from 'next/headers';
-import PremiumUser from '@/models/PremiumUser';
+import PremiumUser from '../../../../../models/PremiumUser.js';
 
 export async function GET(req, { params }) {
   await connectDB();

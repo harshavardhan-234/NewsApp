@@ -1,5 +1,5 @@
 // /app/api/locations/add-state/route.js
-import { connectDB } from '@/lib/db';
+import connectDB from '@/lib/db';
 import { NextResponse } from 'next/server';
 import Location from '@/models/Country';
 

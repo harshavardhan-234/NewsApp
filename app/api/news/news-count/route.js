@@ -1,22 +1,28 @@
-import { NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
-import News from '@/models/News';
+// app/api/admin/news-count/route.js
+import clientPromise from "../../../../lib/clientPromise.js";
+import { NextResponse } from "next/server";
 
 export async function GET() {
-  await connectDB();
-
   try {
-    const total = await News.countDocuments();
+    const client = await clientPromise;
+    const db = client.db("test"); // 👈 your DB name
+    const news = db.collection("news");
 
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    const total = await news.countDocuments();
 
-    const today = await News.countDocuments({
-      createdAt: { $gte: startOfDay }
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const today = await news.countDocuments({
+      createdAt: { $gte: todayStart, $lte: todayEnd },
     });
 
     return NextResponse.json({ total, today });
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to fetch counts' }, { status: 500 });
+    console.error("❌ Error fetching news count:", err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

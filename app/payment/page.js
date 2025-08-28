@@ -36,8 +36,11 @@ export default function PaymentPage() {
     setIsLoading(false);
   }, [name, email, phone, password, plan]);
   
-  // Get session_id from URL if available
+  // Get payment parameters from URL
   const session_id = searchParams.get('session_id');
+  const razorpay_payment_id = searchParams.get('razorpay_payment_id');
+  const razorpay_order_id = searchParams.get('razorpay_order_id');
+  const razorpay_signature = searchParams.get('razorpay_signature');
 
   useEffect(() => {
     // Don't proceed if still loading or missing data
@@ -49,12 +52,11 @@ export default function PaymentPage() {
       return;
     }
 
-    // If we have a session_id, we need to check its status
-    // If not, we need to initiate a new payment
+    // Handle payment verification based on the parameters in URL
     const handlePayment = async () => {
       try {
+        // Handle Stripe payment verification
         if (session_id) {
-          // If we have a session_id, verify the payment
           const verifyRes = await fetch('/api/verify-stripe-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -67,8 +69,10 @@ export default function PaymentPage() {
           const verifyData = await verifyRes.json();
 
           if (verifyData.success) {
-            // Clear session storage
-            sessionStorage.removeItem('subscriptionData');
+            // Store user data for email confirmation page
+            if (verifyData.userData) {
+              sessionStorage.setItem('subscriptionData', JSON.stringify(verifyData.userData));
+            }
             
             // Redirect to success page
             if (verifyData.redirectUrl) {
@@ -80,8 +84,41 @@ export default function PaymentPage() {
             alert('❌ Payment verification failed: ' + (verifyData.message || 'Please contact support.'));
             router.push('/subscribe/form');
           }
-        } else {
-          // If no session_id, initiate a new payment
+        } 
+        // Handle Razorpay payment verification
+        else if (razorpay_payment_id && razorpay_order_id && razorpay_signature) {
+          const verifyRes = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_payment_id,
+              razorpay_order_id,
+              razorpay_signature,
+              ...formData, // Include all user data
+            }),
+          });
+
+          const verifyData = await verifyRes.json();
+
+          if (verifyData.success) {
+            // Store user data for email confirmation page
+            if (verifyData.userData) {
+              sessionStorage.setItem('subscriptionData', JSON.stringify(verifyData.userData));
+            }
+            
+            // Redirect to success page
+            if (verifyData.redirectUrl) {
+              window.location.href = verifyData.redirectUrl;
+            } else {
+              router.push('/payment-success');
+            }
+          } else {
+            alert('❌ Payment verification failed: ' + (verifyData.message || 'Please contact support.'));
+            router.push('/subscribe/form');
+          }
+        } 
+        // If no payment parameters, initiate a new payment
+        else {
           const res = await fetch('/api/initiate-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -96,13 +133,53 @@ export default function PaymentPage() {
             return;
           }
 
-          // If we have a direct URL to Stripe checkout, use it
-          if (data.url) {
-            window.location.href = data.url;
-          } else {
-            // Otherwise, use the Stripe JS library to redirect
-            const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-            await stripe.redirectToCheckout({ sessionId: data.id });
+          // Handle based on payment provider
+          if (data.provider === 'stripe') {
+            // For Stripe, redirect to the provided URL
+            if (data.url) {
+              window.location.href = data.url;
+            } else {
+              // Otherwise, use the Stripe JS library to redirect
+              const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+              await stripe.redirectToCheckout({ sessionId: data.id });
+            }
+          } else if (data.provider === 'razorpay') {
+            // For Razorpay, open the payment modal
+            const options = {
+              key: data.key_id,
+              amount: data.amount,
+              currency: data.currency,
+              name: "News Portal",
+              description: `Subscription - ${formData.plan} Month(s)`,
+              order_id: data.order_id,
+              handler: function(response) {
+                // On successful payment, verify the payment
+                window.location.href = `/payment?razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
+              },
+              prefill: {
+                name: formData.name,
+                email: formData.email,
+                contact: formData.phone
+              },
+              theme: {
+                color: "#0070f3"
+              }
+            };
+            
+            // Load Razorpay script if not already loaded
+            if (!window.Razorpay) {
+              const script = document.createElement('script');
+              script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+              script.async = true;
+              script.onload = () => {
+                const paymentObject = new window.Razorpay(options);
+                paymentObject.open();
+              };
+              document.body.appendChild(script);
+            } else {
+              const paymentObject = new window.Razorpay(options);
+              paymentObject.open();
+            }
           }
         }
       } catch (error) {
@@ -114,9 +191,9 @@ export default function PaymentPage() {
 
     // Process the payment
     handlePayment();
-  }, [isLoading, formData, orderId, amount, router]);
+  }, [isLoading, formData, orderId, session_id, razorpay_payment_id, razorpay_order_id, razorpay_signature, router]);
 
-  // No need for script loading helper with Stripe
+  // Script loading is handled within the payment handler functions
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>

@@ -1,0 +1,26 @@
+# Environment Configuration Template
+# Copy this to .env.local and update with your values
+
+# MongoDB Connection
+MONGODB_URI=mongodb://localhost:27017/news_portal
+# OR for MongoDB Atlas:
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/news_portal?retryWrites=true&w=majority
+
+# NextAuth Configuration
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=http://localhost:3000
+
+# Email Configuration (for OTP/notifications)
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+
+# Payment Gateway (if using Stripe/Razorpay)
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+
+# AWS S3 (for file uploads)
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_REGION=your_aws_region
+AWS_S3_BUCKET=your_s3_bucket_name

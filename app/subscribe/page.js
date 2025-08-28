@@ -1,17 +1,29 @@
-// app/subscribe/page.js
 'use client';
 import { useRouter } from 'next/navigation';
+import './subscribe.css';
 
 export default function SubscribePage() {
   const router = useRouter();
 
   const plans = [
-    { duration: 1, price: 99 },
-    { duration: 2, price: 199 },
-    { duration: 3, price: 299 },
-    { duration: 4, price: 399 },
-    { duration: 5, price: 499 },
-    { duration: 6, price: 599 },
+    { 
+      duration: 1, 
+      price: 99, 
+      features: ['Access to all news', 'Mobile app access', 'Email support'],
+      popular: false
+    },
+    { 
+      duration: 3, 
+      price: 299, 
+      features: ['Access to all news', 'Mobile app access', 'Priority support', 'Ad-free experience'],
+      popular: true
+    },
+    { 
+      duration: 6, 
+      price: 599, 
+      features: ['Access to all news', 'Mobile app access', 'Priority support', 'Ad-free experience', 'Exclusive content'],
+      popular: false
+    },
   ];
 
   const handleSubscribe = (plan) => {
@@ -19,35 +31,48 @@ export default function SubscribePage() {
   };
 
   return (
-    <div style={{ padding: '40px' }}>
-      <h1 style={{ fontSize: '28px', marginBottom: '30px' }}>Choose Your Subscription Plan</h1>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-        gap: '20px'
-      }}>
-        {plans.map(plan => (
-          <div key={plan.duration} style={{
-            border: '1px solid #ccc',
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-            textAlign: 'center'
-          }}>
-            <h2 style={{ fontSize: '22px' }}>{plan.duration} Month{plan.duration > 1 ? 's' : ''}</h2>
-            <p style={{ fontSize: '18px', margin: '10px 0' }}>₹{plan.price}</p>
-            <button onClick={() => handleSubscribe(plan)} style={{
-              background: '#0070f3',
-              color: '#fff',
-              padding: '10px 15px',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}>
-              Subscribe
-            </button>
-          </div>
-        ))}
+    <div className="subscription-container">
+      <div className="subscription-wrapper">
+        <div className="subscription-header fade-in-up">
+          <h1 className="subscription-title">Choose Your Plan</h1>
+          <p className="subscription-subtitle">
+            Get unlimited access to premium news content, exclusive articles, and ad-free reading experience
+          </p>
+        </div>
+
+        <div className="plans-grid">
+          {plans.map((plan, index) => (
+            <div 
+              key={plan.duration} 
+              className={`plan-card fade-in-up ${plan.popular ? 'popular' : ''}`}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="plan-duration">
+                {plan.duration} Month{plan.duration > 1 ? 's' : ''}
+              </div>
+              <div className="plan-price">
+                <span className="currency">₹</span>{plan.price}
+              </div>
+              <ul className="plan-features">
+                {plan.features.map((feature, idx) => (
+                  <li key={idx}>{feature}</li>
+                ))}
+              </ul>
+              <button 
+                onClick={() => handleSubscribe(plan)} 
+                className="plan-button"
+              >
+                Get Started
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="security-badges">
+          <div className="security-badge">SSL Secured</div>
+          <div className="security-badge">256-bit Encryption</div>
+          <div className="security-badge">Money Back Guarantee</div>
+        </div>
       </div>
     </div>
   );

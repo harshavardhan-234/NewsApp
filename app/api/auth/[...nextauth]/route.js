@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
-import clientPromise from '@/lib/db';
+import clientPromise from '@/lib/clientPromise';
 import bcrypt from 'bcryptjs';
 
 const handler = async (req, res) => {

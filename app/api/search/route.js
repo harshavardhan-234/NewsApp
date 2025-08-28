@@ -1,6 +1,6 @@
 // app/api/search/route.js
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongoose';
+import connectDB from '@/lib/db';
 import News from '@/models/News';
 
 export async function GET(req) {

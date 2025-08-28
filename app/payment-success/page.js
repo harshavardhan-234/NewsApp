@@ -62,6 +62,23 @@ export default function PaymentSuccessPage() {
       
       <div style={{ marginTop: '30px' }}>
         <a 
+          href="/subscribe/email-confirmation"
+          style={{
+            display: 'inline-block',
+            padding: '12px 25px',
+            backgroundColor: '#0070f3',
+            color: 'white',
+            borderRadius: 8,
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'all 0.3s ease',
+            marginRight: '15px'
+          }}
+        >
+          Send Confirmation Email
+        </a>
+        <a 
           href="/"
           style={{
             display: 'inline-block',

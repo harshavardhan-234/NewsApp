@@ -1,5 +1,5 @@
 // app/api/countries/route.js
-import connectDB from '@/lib/db'
+import { connectDB } from '@/lib/db'
 import Country from '@/models/Country'
 import { NextResponse } from 'next/server'
 

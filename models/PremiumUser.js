@@ -8,6 +8,7 @@ const premiumUserSchema = new mongoose.Schema({
   password: String,
   plan: Number,
   expiresAt: Date,
+  isAdmin: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export default mongoose.models.PremiumUser || mongoose.model('PremiumUser', premiumUserSchema);

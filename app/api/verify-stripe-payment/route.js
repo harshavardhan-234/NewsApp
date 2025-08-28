@@ -7,7 +7,13 @@ import PremiumUser from '@/models/PremiumUser';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Make sure STRIPE_SECRET_KEY is defined in .env.local
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error("❌ STRIPE_SECRET_KEY is not defined in environment variables");
+  // We'll handle this in the API route
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 export async function POST(req) {
   const body = await req.json();
@@ -18,6 +24,14 @@ export async function POST(req) {
   }
 
   try {
+    // Check if Stripe API key is configured
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Stripe API key is not configured.' 
+      }, { status: 500 });
+    }
+    
     // Retrieve the session from Stripe to verify payment was successful
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
@@ -40,7 +54,15 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    await connectDB();
+    try {
+      await connectDB();
+    } catch (dbError) {
+      console.error('❌ Database connection error:', dbError);
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Database connection failed. Please try again later.' 
+      }, { status: 500 });
+    }
 
     // Hash password and create new premium user
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -85,7 +107,15 @@ export async function POST(req) {
     return NextResponse.json({ 
       success: true, 
       token: newUser._id,
-      redirectUrl: '/payment-success'
+      redirectUrl: '/subscribe/email-confirmation',
+      userData: {
+        name,
+        email,
+        phone,
+        plan,
+        paymentMethod: 'Stripe',
+        paymentId: session_id
+      }
     }, { status: 200 });
   } catch (err) {
     console.error('❌ Error verifying Stripe payment:', err);

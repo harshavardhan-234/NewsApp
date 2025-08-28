@@ -1,116 +1,191 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation'; // 🔑 import pathname
+import './admin-global.css';
+import { FiSettings, FiLogOut, FiLock, FiGlobe } from 'react-icons/fi';
 
 export default function AdminLayout({ children }) {
   const [showSettings, setShowSettings] = useState(false);
+  const settingsRef = useRef(null);
+  const menuItemsRef = useRef([]);
+  const pathname = usePathname(); // 🔑 get current path
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setShowSettings(false);
+      }
+    }
+    
+    function handleEscKey(event) {
+      if (event.key === 'Escape') {
+        setShowSettings(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscKey);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (showSettings && menuItemsRef.current.length > 0) {
+      setTimeout(() => {
+        menuItemsRef.current[0]?.focus();
+      }, 10);
+    }
+  }, [showSettings]);
+
+  const handleMenuKeyDown = (e, index) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = (index + 1) % menuItemsRef.current.length;
+      menuItemsRef.current[nextIndex]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = (index - 1 + menuItemsRef.current.length) % menuItemsRef.current.length;
+      menuItemsRef.current[prevIndex]?.focus();
+    }
+  };
+
+  // 🔑 If login page, render only children (no sidebar/header)
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
   return (
-    <html lang="en">
-      <body style={{ margin: 0, fontFamily: 'Arial, sans-serif', backgroundColor: '#f4f4f4' }}>
-        {/* Sidebar */}
-        <div style={{
-          width: '240px',
-          height: '100vh',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          backgroundColor: '#1e1e2f',
-          color: '#fff',
-          padding: '30px 20px',
-          boxSizing: 'border-box',
-          overflowY: 'auto'
-        }}>
-          <h1 style={{ fontSize: '1.8rem', marginBottom: '30px' }}>Admin Panel</h1>
-          <nav>
-            <ul style={{ listStyle: 'none', padding: 0, lineHeight: '2.2' }}>
-              <li><a href="/admin/dashboard" style={linkStyle}>📊 Dashboard</a></li>
-              <li><a href="/admin/add-news" style={linkStyle}>➕ Add News</a></li>
-              <li><a href="/admin/manage-news" style={linkStyle}>📰 Manage News</a></li>
-              <li><a href="/admin/categories" style={linkStyle}>📂 Categories</a></li>
-              <li><a href="/admin/default-image" style={linkStyle}>🖼️ Default Image</a></li>
-
-              {/* Location Management */}
-              <li><a href="/admin/add-country" style={linkStyle}>🌍 Add Country</a></li>
-              <li><a href="/admin/manage-country" style={linkStyle}>🌍 Manage Countries</a></li>
-              <li><a href="/admin/add-state" style={linkStyle}>🏙️ Add State</a></li>
-              <li><a href="/admin/manage-state" style={linkStyle}>🏙️ Manage States</a></li>
-              <li><a href="/admin/add-city" style={linkStyle}>🏘️ Add City</a></li>
-              <li><a href="/admin/manage-city" style={linkStyle}>🏘️ Manage Cities</a></li>
-            </ul>
-          </nav>
+    <div className="admin-layout">
+      {/* Sidebar */}
+      <div className="admin-sidebar">
+        <div className="sidebar-header">
+          <h1 className="sidebar-title">Admin Panel</h1>
         </div>
+        <nav>
+          <ul className="sidebar-nav">
+            <div className="nav-category">Content Management</div>
+            <li className="nav-item">
+              <a href="/admin/dashboard" className="nav-link">
+                <FiSettings />
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li className="nav-item">
+              <a href="/admin/add-news" className="nav-link">
+                <FiSettings />
+                <span>Add News</span>
+              </a>
+            </li>
+            <li className="nav-item">
+              <a href="/admin/manage-news" className="nav-link">
+                <FiSettings />
+                <span>Manage News</span>
+              </a>
+            </li>
+            <li className="nav-item">
+              <a href="/admin/categories" className="nav-link">
+                <FiSettings />
+                <span>Categories</span>
+              </a>
+            </li>
+            <li className="nav-item">
+              <a href="/admin/videos" className="nav-link">
+                <FiSettings />
+                <span>Videos</span>
+              </a>
+            </li>
+            <li className="nav-item">
+              <a href="/admin/default-image" className="nav-link">
+                <FiSettings />
+                <span>Default Image</span>
+              </a>
+            </li>
 
-        {/* Floating Settings Icon + Dropdown */}
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '30px',
-          zIndex: 1000
-        }}>
-          <span
-            onClick={() => setShowSettings(prev => !prev)}
-            style={{
-              fontSize: '26px',
-              cursor: 'pointer',
-              display: 'inline-block',
-              transition: 'transform 0.2s ease'
-            }}
-          >
-            ⚙️
-          </span>
+          </ul>
+        </nav>
+      </div>
 
-          {showSettings && (
-            <div style={{
-              position: 'absolute',
-              top: '35px',
-              right: 0,
-              backgroundColor: '#fff',
-              color: '#000',
-              borderRadius: '6px',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-              padding: '10px',
-              width: '180px'
-            }}>
-              <a href="/admin/settings" style={dropdownLink}>🌐 Global Settings</a>
-              <a href="/admin/change-password" style={dropdownLink}>🔐 Change Password</a>
-              <a href="/admin/logout" style={dropdownLink}>🚪 Logout</a>
+      {/* Main Content Area */}
+      <div className="admin-main">
+        {/* Header with Settings */}
+        <div className="admin-header">
+          <div className="header-title">News Admin Dashboard</div>
+          <div className="header-actions">
+            <div className="settings-dropdown" ref={settingsRef}>
+              <span
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowSettings(prev => !prev);
+                }}
+                className={`settings-icon ${showSettings ? 'active' : ''}`}
+                role="button"
+                tabIndex="0"
+                aria-haspopup="true"
+                aria-expanded={showSettings}
+                id="settings-menu-button"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setShowSettings(prev => !prev);
+                  }
+                }}
+              >
+                <FiSettings size={22} />
+              </span>
+
+              {showSettings && (
+                <div className="settings-menu" role="menu" aria-orientation="vertical" aria-labelledby="settings-menu-button">
+                  <a 
+                    href="/admin/settings" 
+                    className="settings-item"
+                    onClick={() => setShowSettings(false)}
+                    role="menuitem"
+                    tabIndex="0"
+                    ref={el => menuItemsRef.current[0] = el}
+                    onKeyDown={(e) => handleMenuKeyDown(e, 0)}
+                  >
+                    <FiGlobe size={16} />
+                    <span>Global Settings</span>
+                  </a>
+                  <a 
+                    href="/admin/change-password" 
+                    className="settings-item"
+                    onClick={() => setShowSettings(false)}
+                    role="menuitem"
+                    tabIndex="0"
+                    ref={el => menuItemsRef.current[1] = el}
+                    onKeyDown={(e) => handleMenuKeyDown(e, 1)}
+                  >
+                    <FiLock size={16} />
+                    <span>Change Password</span>
+                  </a>
+                  <a 
+                    href="/api/admin/logout" 
+                    className="settings-item"
+                    onClick={() => setShowSettings(false)}
+                    role="menuitem"
+                    tabIndex="0"
+                    ref={el => menuItemsRef.current[2] = el}
+                    onKeyDown={(e) => handleMenuKeyDown(e, 2)}
+                  >
+                    <FiLogOut size={16} />
+                    <span>Logout</span>
+                  </a>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Main Content */}
-        <div style={{
-          marginLeft: '240px',
-          padding: '40px',
-          backgroundColor: '#fff',
-          minHeight: '100vh',
-        }}>
+        {/* Page Content */}
+        <div className="page-content">
           {children}
         </div>
-      </body>
-    </html>
+      </div>
+    </div>
   );
 }
-
-const linkStyle = {
-  textDecoration: 'none',
-  color: '#ddd',
-  fontSize: '1rem',
-  display: 'block',
-  padding: '6px 12px',
-  borderRadius: '6px',
-  transition: 'background 0.3s ease',
-};
-
-const dropdownLink = {
-  display: 'block',
-  padding: '8px 12px',
-  textDecoration: 'none',
-  color: '#333',
-  fontSize: '14px',
-  borderRadius: '4px',
-  marginBottom: '6px',
-  backgroundColor: '#f5f5f5',
-  transition: 'background 0.2s ease',
-};

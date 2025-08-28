@@ -1,0 +1,187 @@
+/* Add News Page Styles */
+
+.add-news-container {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  padding: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.add-news-header {
+  margin-bottom: 25px;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.add-news-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-news-header h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+.news-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.news-form input[type="text"],
+.news-form textarea,
+.news-form select {
+  padding: 12px 15px;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.news-form input[type="text"]:focus,
+.news-form textarea:focus,
+.news-form select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.news-form textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.file-input-container {
+  position: relative;
+}
+
+.file-input-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  background-color: #f8f9fa;
+  border: 1px dashed #bdc3c7;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.file-input-label:hover {
+  background-color: #ecf0f1;
+  border-color: #95a5a6;
+}
+
+.file-input-label svg {
+  font-size: 20px;
+  color: #3498db;
+}
+
+.file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-name {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #7f8c8d;
+}
+
+.submit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.submit-button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+.submit-button svg {
+  font-size: 18px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .add-news-container {
+    padding: 20px;
+  }
+  
+  .news-form input[type="text"],
+  .news-form textarea,
+  .news-form select,
+  .file-input-label {
+    padding: 10px 12px;
+  }
+  
+  .submit-button {
+    padding: 10px 20px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .add-news-container {
+    padding: 15px;
+  }
+  
+  .add-news-header h2 {
+    font-size: 20px;
+  }
+  
+  .news-form {
+    gap: 15px;
+  }
+  
+  .submit-button {
+    width: 100%;
+  }
+}

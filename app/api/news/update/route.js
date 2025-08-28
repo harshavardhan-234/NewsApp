@@ -1,5 +1,5 @@
-import connectDB from '@/lib/db';
-import News from '@/models/News';
+import connectDB from '../../../../lib/db';
+import News from '../../../../models/News.js';
 import { writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';

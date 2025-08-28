@@ -1,4 +1,4 @@
-import connectDB from '@/lib/mongoose';
+import connectDB from '@/lib/db';
 import News from '@/models/News';
 import { notFound } from 'next/navigation';
 

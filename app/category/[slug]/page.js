@@ -1,5 +1,5 @@
 // app/category/[slug]/page.js
-import connectDB from '@/lib/mongoose';
+import connectDB from '@/lib/db';
 import News from '@/models/News';
 import PremiumUser from '@/models/PremiumUser';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';

@@ -1,55 +1,33 @@
-import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/db';
-import PremiumUser from '@/models/PremiumUser';
+import Admin from '@/models/admin';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req) {
   try {
-    await connectDB(); // Connect to MongoDB
+    await connectDB(); // ✅ this now works
 
     const { email, password } = await req.json();
 
-    // Input validation
-    if (!email || !password) {
-      return NextResponse.json({ success: false, message: 'All fields are required' }, { status: 400 });
+    const admin = await Admin.findOne({ email });
+    if (!admin) {
+      return new Response(JSON.stringify({ message: 'Admin not found' }), { status: 404 });
     }
 
-    // Find user by email
-    const user = await PremiumUser.findOne({ email });
-
-    if (!user) {
-      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return new Response(JSON.stringify({ message: 'Invalid credentials' }), { status: 401 });
     }
 
-    // Compare password
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    const token = jwt.sign(
+      { id: admin._id, email: admin.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
 
-    if (!isPasswordMatch) {
-      return NextResponse.json({ success: false, message: 'Invalid password' }, { status: 401 });
-    }
-
-    // Success: Set cookie and return success
-    const response = NextResponse.json({
-      success: true,
-      message: 'Login successful',
-      userId: user._id,
-      email: user.email,
-      plan: user.plan,
-      expiresAt: user.expiresAt,
-    });
-
-    // Set token as cookie
-    response.cookies.set('token', user._id.toString(), {
-      httpOnly: true,
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-    });
-
-    return response;
+    return new Response(JSON.stringify({ token }), { status: 200 });
   } catch (error) {
-    console.error('Login API Error:', error);
-    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
+    console.error('Admin Login API Error:', error);
+    return new Response(JSON.stringify({ message: 'Server error' }), { status: 500 });
   }
 }
